@@ -56,8 +56,8 @@ class User(AbstractUser):
     class Level(models.TextChoices):
         JUNIOR_I = "JUNIOR_I", _("Junior I")
         JUNIOR_II = "JUNIOR_II", _("Junior II")
-        MID = "MID", _("Mid")
-        UPPER_MID = "UPPER_MID", _("Upper Mid")
+        MID_I = "MID_I", _("Mid I")
+        MID_II = "MID_II", _("Mid II")
         SENIOR = "SENIOR", _("Senior")
 
     username_validator = UnicodeUsernameValidator()
