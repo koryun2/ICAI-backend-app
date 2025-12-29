@@ -4,7 +4,7 @@ from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django import forms
 
 from .models import User
-from .models import InterviewSession, InterviewTurn
+from .models import InterviewSession, InterviewQuestion
 
 
 class UserCreationForm(forms.ModelForm):
@@ -106,8 +106,8 @@ class UserAdmin(DjangoUserAdmin):
         }),
     )
 
-class InterviewTurnInline(admin.TabularInline):
-    model = InterviewTurn
+class InterviewQuestionInline(admin.TabularInline):
+    model = InterviewQuestion
     extra = 0
     ordering = ("order",)
 
@@ -116,4 +116,4 @@ class InterviewSessionAdmin(admin.ModelAdmin):
     list_display = ("id", "user", "position", "level", "status", "created_at")
     list_filter = ("status", "level")
     search_fields = ("id", "user__email", "role", "position")
-    inlines = [InterviewTurnInline]
+    inlines = [InterviewQuestionInline]

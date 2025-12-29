@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from .models import InterviewSession, InterviewTurn
+from .models import InterviewSession, InterviewQuestion
 
 User = get_user_model()
 
@@ -75,9 +75,9 @@ class MeUpdateSerializer(serializers.ModelSerializer):
             "username": {"required": False, "allow_blank": True, "allow_null": True},
         }
 
-class InterviewTurnSerializer(serializers.ModelSerializer):
+class InterviewQuestionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = InterviewTurn
+        model = InterviewQuestion
         fields = (
             "id",
             "order",
@@ -113,7 +113,7 @@ class InterviewSessionListSerializer(serializers.ModelSerializer):
 
 class InterviewSessionDetailSerializer(serializers.ModelSerializer):
     stack = serializers.ListField(source="tech_stack", child=serializers.CharField(), required=False)
-    turns = InterviewTurnSerializer(many=True, read_only=True)
+    questions = InterviewQuestionSerializer(many=True, read_only=True)
 
     class Meta:
         model = InterviewSession
@@ -132,7 +132,7 @@ class InterviewSessionDetailSerializer(serializers.ModelSerializer):
             "updated_at",
             "started_at",
             "ended_at",
-            "turns",
+            "questions",
         )
 
 
@@ -151,4 +151,10 @@ class InterviewSessionCreateSerializer(serializers.ModelSerializer):
 
 
 class InterviewAnswerSerializer(serializers.Serializer):
+    question_id = serializers.IntegerField()
     answer = serializers.CharField(allow_blank=False)
+    check_only = serializers.BooleanField(required=False, default=False)
+
+
+class InterviewGenerateSerializer(serializers.Serializer):
+    count = serializers.IntegerField(min_value=1, max_value=50, default=5)

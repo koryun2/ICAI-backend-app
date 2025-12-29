@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from pathlib import Path
 from datetime import timedelta
 import os
+from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -75,7 +76,12 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True  # DEV ONLY CORS_ALLOWED_ORIGINS = ["https://yourdomain.com"],Never use CORS_ALLOW_ALL_ORIGINS = True in production.
+# CORS_ALLOW_ALL_ORIGINS = True  # DEV ONLY 
+CORS_ALLOWED_ORIGINS = ["http://localhost:5173","http://127.0.0.1:5173"] #Never use CORS_ALLOW_ALL_ORIGINS = True in production.
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "x-interview-token",
+]
 
 ROOT_URLCONF = 'ICAIproject.urls'
 

@@ -8,6 +8,7 @@ from .views import (
     InterviewSessionListCreateView,
     InterviewSessionDetailView,
     InterviewAnswerView,
+    InterviewGenerateView,
 )
 
 urlpatterns = [
@@ -18,4 +19,5 @@ urlpatterns = [
     path("interviews/", InterviewSessionListCreateView.as_view()),
     path("interviews/<uuid:session_id>/", InterviewSessionDetailView.as_view()),
     path("interviews/<uuid:session_id>/answer/", InterviewAnswerView.as_view()),
+    path("interviews/<uuid:session_id>/generate/", InterviewGenerateView.as_view()),
 ]
