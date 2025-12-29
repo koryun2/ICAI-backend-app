@@ -279,11 +279,34 @@ class InterviewGenerateView(APIView):
             questions_list = [q.strip() for q in fastapi_resp.get("questions", []) if q and q.strip()]
             questions_list = [q for q in questions_list if q not in existing_set]
 
+            if not questions_list:
+                return Response(
+                    {"detail": "No new questions generated. All questions may already exist."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
             for i, qtext in enumerate(questions_list):
                 InterviewQuestion.objects.create(session=session, order=next_order + i, question=qtext)
 
             session.status = InterviewSession.Status.IN_PROGRESS
             session.save(update_fields=["status", "fastapi_session_id", "updated_at"])
+
+        session = InterviewSession.objects.filter(id=session_id).prefetch_related("questions").first()
+        return Response(InterviewSessionDetailSerializer(session).data, status=status.HTTP_200_OK)
+
+class InterviewQuestionDeleteView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def delete(self, request, session_id, question_id):
+        session = get_object_or_404(InterviewSession, id=session_id)
+
+        token = request.headers.get("X-Interview-Token")
+        can_access_session(session, request, token)
+
+        question = get_object_or_404(InterviewQuestion, id=question_id, session=session)
+
+        with transaction.atomic():
+            question.delete()
 
         session = InterviewSession.objects.filter(id=session_id).prefetch_related("questions").first()
         return Response(InterviewSessionDetailSerializer(session).data, status=status.HTTP_200_OK)
