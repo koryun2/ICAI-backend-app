@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -142,3 +143,16 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# ============================
+# External Services
+# ============================
+
+# ---- FastAPI integration ----
+FASTAPI_BASE_URL = os.getenv("FASTAPI_BASE_URL", "http://127.0.0.1:8001")
+FASTAPI_SYNC_PATH = os.getenv("FASTAPI_SYNC_PATH", "/api/v1/user/profile")
+FASTAPI_SYNC_URL = FASTAPI_BASE_URL.rstrip("/") + FASTAPI_SYNC_PATH
+
+# Interview Engine (FastAPI)
+FASTAPI_BASE_URL = "http://localhost:8001"  # ignored when mock = True
+FASTAPI_MOCK = True  # ← set False in prod

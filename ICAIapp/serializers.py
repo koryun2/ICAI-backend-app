@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
+from .models import InterviewSession, InterviewTurn
 
 User = get_user_model()
 
@@ -73,3 +74,81 @@ class MeUpdateSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "username": {"required": False, "allow_blank": True, "allow_null": True},
         }
+
+class InterviewTurnSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InterviewTurn
+        fields = (
+            "id",
+            "order",
+            "question",
+            "answer",
+            "feedback",
+            "score",
+            "meta",
+            "asked_at",
+            "answered_at",
+        )
+
+
+class InterviewSessionListSerializer(serializers.ModelSerializer):
+    stack = serializers.ListField(source="tech_stack", child=serializers.CharField(), required=False)
+
+    class Meta:
+        model = InterviewSession
+        fields = (
+            "id",
+            "role",
+            "position",
+            "level",
+            "stack",
+            "status",
+            "created_at",
+            "updated_at",
+            "started_at",
+            "ended_at",
+            "overall_score",
+        )
+
+
+class InterviewSessionDetailSerializer(serializers.ModelSerializer):
+    stack = serializers.ListField(source="tech_stack", child=serializers.CharField(), required=False)
+    turns = InterviewTurnSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = InterviewSession
+        fields = (
+            "id",
+            "role",
+            "position",
+            "level",
+            "stack",
+            "status",
+            "fastapi_session_id",
+            "overall_feedback",
+            "overall_score",
+            "overall_meta",
+            "created_at",
+            "updated_at",
+            "started_at",
+            "ended_at",
+            "turns",
+        )
+
+
+class InterviewSessionCreateSerializer(serializers.ModelSerializer):
+    stack = serializers.ListField(
+        source="tech_stack",
+        child=serializers.CharField(),
+        required=False,
+        allow_empty=True,
+    )
+
+    class Meta:
+        model = InterviewSession
+        fields = ("id", "role", "position", "level", "stack")
+        read_only_fields = ("id",)
+
+
+class InterviewAnswerSerializer(serializers.Serializer):
+    answer = serializers.CharField(allow_blank=False)

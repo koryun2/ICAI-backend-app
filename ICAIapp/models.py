@@ -1,6 +1,9 @@
 # models.py
 from __future__ import annotations
 from typing import Any
+from uuid import uuid4
+from django.conf import settings
+from django.utils import timezone
 
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
@@ -115,3 +118,97 @@ class User(AbstractUser):
 
     def __str__(self) -> str:
         return self.email
+
+class InterviewSession(models.Model):
+    class Status(models.TextChoices):
+        CREATED = "CREATED", _("Created")
+        IN_PROGRESS = "IN_PROGRESS", _("In progress")
+        COMPLETED = "COMPLETED", _("Completed")
+        FAILED = "FAILED", _("Failed")
+        CANCELLED = "CANCELLED", _("Cancelled")
+
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="interview_sessions",
+        verbose_name=_("user"),
+    )
+
+    role = models.CharField(_("role"), max_length=255)
+    position = models.CharField(_("position"), max_length=255)
+    level = models.CharField(_("level"), max_length=16, choices=User.Level.choices)
+
+    tech_stack = models.JSONField(_("tech stack"), default=list, blank=True)
+
+    # If FastAPI has its own id/thread id, store it here (optional but useful)
+    fastapi_session_id = models.CharField(
+        _("fastapi session id"),
+        max_length=128,
+        blank=True,
+        db_index=True,
+    )
+
+    status = models.CharField(
+        _("status"),
+        max_length=16,
+        choices=Status.choices,
+        default=Status.CREATED,
+    )
+
+    overall_feedback = models.TextField(_("overall feedback"), blank=True)
+    overall_score = models.IntegerField(_("overall score"), null=True, blank=True)
+    overall_meta = models.JSONField(_("overall meta"), default=dict, blank=True)
+
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+    started_at = models.DateTimeField(_("started at"), null=True, blank=True)
+    ended_at = models.DateTimeField(_("ended at"), null=True, blank=True)
+
+    def clean(self):
+        super().clean()
+
+        self.role = (self.role or "").strip()
+        self.position = (self.position or "").strip()
+
+        if self.tech_stack is None:
+            self.tech_stack = []
+        if not isinstance(self.tech_stack, list):
+            raise ValidationError({"tech_stack": _("tech_stack must be a JSON list.")})
+
+    def __str__(self) -> str:
+        return f"{self.id} ({self.user})"
+
+
+class InterviewTurn(models.Model):
+    session = models.ForeignKey(
+        InterviewSession,
+        on_delete=models.CASCADE,
+        related_name="turns",
+        verbose_name=_("session"),
+    )
+
+    order = models.PositiveIntegerField(_("order"))
+
+    question = models.TextField(_("question"))
+    answer = models.TextField(_("answer"), blank=True)
+    feedback = models.TextField(_("feedback"), blank=True)
+
+    score = models.IntegerField(_("score"), null=True, blank=True)
+    meta = models.JSONField(_("meta"), default=dict, blank=True)
+
+    asked_at = models.DateTimeField(_("asked at"), auto_now_add=True)
+    answered_at = models.DateTimeField(_("answered at"), null=True, blank=True)
+
+    class Meta:
+        ordering = ["order"]
+        constraints = [
+            models.UniqueConstraint(fields=["session", "order"], name="uniq_session_turn_order")
+        ]
+        indexes = [
+            models.Index(fields=["session", "order"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.session_id} #{self.order}"
