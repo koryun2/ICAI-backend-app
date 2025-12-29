@@ -2,6 +2,7 @@
 from __future__ import annotations
 from typing import Any
 from uuid import uuid4
+import secrets
 from django.conf import settings
 from django.utils import timezone
 
@@ -134,6 +135,8 @@ class InterviewSession(models.Model):
         on_delete=models.CASCADE,
         related_name="interview_sessions",
         verbose_name=_("user"),
+        null=True,
+        blank=True,
     )
 
     role = models.CharField(_("role"), max_length=255)
@@ -166,6 +169,17 @@ class InterviewSession(models.Model):
     started_at = models.DateTimeField(_("started at"), null=True, blank=True)
     ended_at = models.DateTimeField(_("ended at"), null=True, blank=True)
 
+    public_token = models.CharField(
+        _("public token"),
+        max_length=64,
+        unique=True,
+        db_index=True,
+        blank=True,
+        null=False,
+        editable=False,
+    )
+    claimed_at = models.DateTimeField(_("claimed at"), null=True, blank=True)
+
     def clean(self):
         super().clean()
 
@@ -177,15 +191,20 @@ class InterviewSession(models.Model):
         if not isinstance(self.tech_stack, list):
             raise ValidationError({"tech_stack": _("tech_stack must be a JSON list.")})
 
+    def save(self, *args: Any, **kwargs: Any):
+        if not self.public_token:
+            self.public_token = secrets.token_hex(32)
+        super().save(*args, **kwargs)
+
     def __str__(self) -> str:
         return f"{self.id} ({self.user})"
 
 
-class InterviewTurn(models.Model):
+class InterviewQuestion(models.Model):
     session = models.ForeignKey(
         InterviewSession,
         on_delete=models.CASCADE,
-        related_name="turns",
+        related_name="questions",
         verbose_name=_("session"),
     )
 
@@ -204,7 +223,7 @@ class InterviewTurn(models.Model):
     class Meta:
         ordering = ["order"]
         constraints = [
-            models.UniqueConstraint(fields=["session", "order"], name="uniq_session_turn_order")
+            models.UniqueConstraint(fields=["session", "order"], name="uniq_session_question_order")
         ]
         indexes = [
             models.Index(fields=["session", "order"]),
