@@ -153,6 +153,6 @@ FASTAPI_BASE_URL = os.getenv("FASTAPI_BASE_URL", "http://127.0.0.1:8001")
 FASTAPI_SYNC_PATH = os.getenv("FASTAPI_SYNC_PATH", "/api/v1/user/profile")
 FASTAPI_SYNC_URL = FASTAPI_BASE_URL.rstrip("/") + FASTAPI_SYNC_PATH
 
-# Interview Engine (FastAPI)
+# Interview Engine Test(FastAPI)
 FASTAPI_BASE_URL = "http://localhost:8001"  # ignored when mock = True
 FASTAPI_MOCK = True  # ← set False in prod

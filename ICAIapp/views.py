@@ -46,26 +46,7 @@ from .serializers import (
     InterviewTurnSerializer,
 )
 
-# def _fastapi_post_json(path: str, payload: dict, timeout: int = 20) -> dict:
-#     """
-#     POST JSON to FastAPI and parse JSON response.
-#     Raise a DRF-friendly exception upstream if FastAPI fails.
-#     """
-#     base = settings.FASTAPI_BASE_URL.rstrip("/")
-#     url = base + path
 
-#     data = json.dumps(payload).encode("utf-8")
-#     req = Request(url, data=data, headers={"Content-Type": "application/json"}, method="POST")
-
-#     try:
-#         with urlopen(req, timeout=timeout) as resp:
-#             raw = resp.read().decode("utf-8").strip()
-#             return json.loads(raw) if raw else {}
-#     except HTTPError as e:
-#         body = e.read().decode("utf-8", errors="ignore") if hasattr(e, "read") else ""
-#         raise RuntimeError(f"FastAPI HTTPError {e.code}: {body}")
-#     except URLError as e:
-#         raise RuntimeError(f"FastAPI URLError: {e}")
 
 
 class InterviewSessionListCreateView(generics.ListAPIView):
