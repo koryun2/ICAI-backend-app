@@ -53,35 +53,34 @@ def _mock_response(path: str, payload: dict) -> dict:
     Permanent mock. Must ALWAYS mirror real FastAPI response shape.
     """
 
-    # Generate questions endpoint (used for both initial + generate more)
-    if "generate" in path:
-        count = payload.get("count", 5)
-        fastapi_session_id = payload.get("fastapi_session_id") or "mock-session-001"
-        
-        questions = [
-            f"Mock question {i + 1}: Explain {payload.get('profile', {}).get('role', 'software development')} concepts."
-            for i in range(count)
-        ]
-        
+    # Interview start
+    if "start" in path:
         return {
-            "fastapi_session_id": fastapi_session_id,
-            "questions": questions,
+            "fastapi_session_id": "mock-session-001",
+            "question": "Explain how Django ORM works internally."
         }
 
-    # Check answer endpoint
-    if "check" in path:
-        question = payload.get("question", "")
-        answer = payload.get("answer", "")
-        
-        # Simple mock scoring
-        score = min(10, max(1, len(answer) // 20))
-        
+    # Interview answer
+    if "answer" in path:
+        turn = payload.get("turn", 1)
+
+        if turn < 3:
+            return {
+                "feedback": f"Mock feedback for question {turn}",
+                "score": 7,
+                "next_question": f"Mock question {turn + 1}",
+                "done": False,
+            }
+
         return {
-            "feedback": f"Mock feedback: Your answer about '{question[:50]}...' shows understanding. Score: {score}/10",
-            "score": score,
-            "meta": {
-                "length": len(answer),
-                "has_code": "def" in answer.lower() or "class" in answer.lower(),
+            "feedback": "Final mock feedback",
+            "score": 8,
+            "done": True,
+            "overall_feedback": "Strong interview performance (mock).",
+            "overall_score": 8,
+            "overall_meta": {
+                "strengths": ["Python", "Django"],
+                "gaps": ["System design"]
             },
         }
 
