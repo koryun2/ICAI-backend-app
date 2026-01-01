@@ -119,6 +119,9 @@ class User(AbstractUser):
     def __str__(self) -> str:
         return self.email
 
+def _generate_public_token() -> str:
+    return uuid4().hex
+
 class InterviewSession(models.Model):
     class Status(models.TextChoices):
         CREATED = "CREATED", _("Created")
@@ -127,6 +130,13 @@ class InterviewSession(models.Model):
         FAILED = "FAILED", _("Failed")
         CANCELLED = "CANCELLED", _("Cancelled")
 
+    class Mode(models.TextChoices):
+        CONVERSATION = "conversation", _("Conversation")
+        DRILLDOWN = "drilldown", _("Drilldown")
+        CASE = "case", _("Case")
+        CHALLENGE = "challenge", _("Challenge")
+        RETROSPECTIVE = "retrospective", _("Retrospective")
+
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
 
     user = models.ForeignKey(
@@ -134,15 +144,30 @@ class InterviewSession(models.Model):
         on_delete=models.CASCADE,
         related_name="interview_sessions",
         verbose_name=_("user"),
+        null=True,
+        blank=True,
     )
 
     role = models.CharField(_("role"), max_length=255)
-    position = models.CharField(_("position"), max_length=255)
+    position = models.CharField(_("position"), max_length=255, blank=True)
     level = models.CharField(_("level"), max_length=16, choices=User.Level.choices)
+    mode = models.CharField(
+        _("mode"),
+        max_length=32,
+        choices=Mode.choices,
+        default=Mode.CONVERSATION,
+    )
 
     tech_stack = models.JSONField(_("tech stack"), default=list, blank=True)
 
-    # If FastAPI has its own id/thread id, store it here (optional but useful)
+    public_token = models.CharField(
+        _("public token"),
+        max_length=64,
+        db_index=True,
+        blank=True,
+        null=True,
+    )
+
     fastapi_session_id = models.CharField(
         _("fastapi session id"),
         max_length=128,
@@ -165,6 +190,7 @@ class InterviewSession(models.Model):
     updated_at = models.DateTimeField(_("updated at"), auto_now=True)
     started_at = models.DateTimeField(_("started at"), null=True, blank=True)
     ended_at = models.DateTimeField(_("ended at"), null=True, blank=True)
+    evaluated_at = models.DateTimeField(_("evaluated at"), null=True, blank=True)
 
     def clean(self):
         super().clean()
@@ -178,7 +204,16 @@ class InterviewSession(models.Model):
             raise ValidationError({"tech_stack": _("tech_stack must be a JSON list.")})
 
     def __str__(self) -> str:
-        return f"{self.id} ({self.user})"
+        owner = self.user.email if self.user_id else "guest"
+        return f"{self.id} ({owner})"
+
+    def save(self, *args: Any, **kwargs: Any):
+        if self.user_id is None:
+            if not self.public_token:
+                self.public_token = _generate_public_token()
+        else:
+            self.public_token = None
+        super().save(*args, **kwargs)
 
 
 class InterviewTurn(models.Model):

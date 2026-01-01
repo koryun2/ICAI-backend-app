@@ -1,139 +1,95 @@
-# ICAI-backend-app
+# ICAI Backend
 
-ICAI Backend App built with Django
+Backend service for the ICAI platform, built with Django and Django REST Framework.
 
-# ICAI-backend-app
+This service manages users, interview sessions, questions, answers, and evaluation results. AI-driven generation and evaluation are delegated to an external interview engine.
 
-ICAI Backend App built with Django.
+## Features
 
----
+- User registration and authentication (JWT)
+- User profile management
+- Interview session lifecycle
+- Question and answer storage
+- Guest and authenticated interview support
+- Integration with external interview engine
+- Token-based access for guest sessions
 
-## Overview
+## Tech Stack
 
-This project is a backend application for the ICAI system, built using Django and Django REST Framework (DRF). It provides user authentication, profile management, and other API endpoints for the ICAI system.
-
----
+- Python
+- Django
+- Django REST Framework
+- Simple JWT
+- PostgreSQL (recommended)
 
 ## Requirements
 
-### Python Version
+- Python 3.9+
+- pip / virtualenv
+- Database (PostgreSQL or SQLite for development)
 
-- Python 3.9 or higher
-
-### Django Version
-
-- Django 4.2 or higher
-
-### Additional Dependencies
-
-- Django REST Framework
-- Django REST Framework Simple JWT
-
----
-
-## Installation
-
-Follow these steps to set up the project on your local machine:
-
-1. **Clone the Repository**
-   ```bash
-   git clone <repository-url>
-   cd ICAI-backend-app## Requirements
-   ```
-
-### Python Version
-
-- Python 3.9 or higher
-
-### Django Version
-
-- Django 4.2 or higher
-
-### Additional Dependencies
-
-- Django REST Framework
-- Django REST Framework Simple JWT
-
----
-
-## Installation
-
-Follow these steps to set up the project on your local machine:
-
-1. **Clone the Repository**
-   ```bash
-   git clone <repository-url>
-   cd ICAI-backend-app
-   ```
-2. **Set Up a Virtual Environment**
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
-3. **Install Dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. **Apply Migrations**
-   ```bash
-   python manage.py migrate
-   ```
-5. **Create a Superuser (Optional)**
-   ```bash
-   python manage.py createsuperuser
-   ```
-
-## API Endpoints
-
-- **Register**: `/api/register/`  
-  Allows new users to register.  
-  **Method**: POST  
-  **Request Body**:
-
-  ```json
-  {
-    "email": "user@example.com",
-    "password": "password123"
-  }
-  ```
-
-- **Login**: `/api/token/`  
-  Allows users to log in and retrieve access and refresh tokens.  
-  **Method**: POST  
-  **Request Body**:
-
-  ```json
-  {
-    "email": "user@example.com",
-    "password": "password123"
-  }
-  ```
-
-- **User Profile**: `/api/me/`  
-  Allows authenticated users to retrieve or update their profile.  
-  **Methods**: GET, PUT, PATCH
-
----
-
-## Build and Deployment
-
-### Collect Static Files
-
-Before deploying, collect static files:
+## Setup
 
 ```bash
-python manage.py collectstatic
+git clone <repository-url>
+cd ICAI-backend-app
+
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+pip install -r requirements.txt
+python manage.py migrate
 ```
 
-### Deployment
+### (Optional) Create Superuser
 
-You can deploy this project using any WSGI-compatible server (e.g., Gunicorn, uWSGI) or a platform like Heroku, AWS, or Docker.
+```bash
+python manage.py createsuperuser
+```
 
----
+### Run the Server
 
-## Testing
+```bash
+python manage.py runserver
+```
 
-To run tests:
+## Configuration
+
+The backend expects an external interview engine to be available.
+
+### Required Environment Variables
+
+- `FASTAPI_BASE_URL=http://127.0.0.1:8001`
+
+Additional limits and defaults can be configured via environment variables.
+
+## Authentication
+
+- **JWT-based authentication** for registered users
+- **Guest interview sessions** supported via public token
+- Guest token must be provided via `X-Interview-Token` header or `?t=` query param
+
+## API Overview
+
+The API provides endpoints for:
+
+- Authentication (register, login, refresh)
+- User profile management
+- Interview session creation and listing
+- Question generation and answering
+- Interview evaluation
+
+API schema and examples are available via the browsable API.
+
+## Development Notes
+
+- Interview sessions may belong to a user or be guest-based
+- Guest sessions generate a public access token automatically
+- Questions are ordered per session
+- Evaluation results are stored per question and per session
+- Session status reflects interview progress
+
+## Running Tests
 
 ```bash
 python manage.py test

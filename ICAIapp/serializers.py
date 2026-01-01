@@ -101,6 +101,7 @@ class InterviewSessionListSerializer(serializers.ModelSerializer):
             "role",
             "position",
             "level",
+            "mode",
             "stack",
             "status",
             "created_at",
@@ -113,7 +114,7 @@ class InterviewSessionListSerializer(serializers.ModelSerializer):
 
 class InterviewSessionDetailSerializer(serializers.ModelSerializer):
     stack = serializers.ListField(source="tech_stack", child=serializers.CharField(), required=False)
-    turns = InterviewTurnSerializer(many=True, read_only=True)
+    questions = InterviewTurnSerializer(source="turns", many=True, read_only=True)
 
     class Meta:
         model = InterviewSession
@@ -122,6 +123,7 @@ class InterviewSessionDetailSerializer(serializers.ModelSerializer):
             "role",
             "position",
             "level",
+            "mode",
             "stack",
             "status",
             "fastapi_session_id",
@@ -132,7 +134,8 @@ class InterviewSessionDetailSerializer(serializers.ModelSerializer):
             "updated_at",
             "started_at",
             "ended_at",
-            "turns",
+            "evaluated_at",
+            "questions",
         )
 
 
@@ -143,12 +146,35 @@ class InterviewSessionCreateSerializer(serializers.ModelSerializer):
         required=False,
         allow_empty=True,
     )
+    count = serializers.IntegerField(
+        min_value=1,
+        max_value=50,
+        required=False,
+        write_only=True,
+    )
 
     class Meta:
         model = InterviewSession
-        fields = ("id", "role", "position", "level", "stack")
+        fields = ("id", "role", "position", "level", "mode", "stack", "count")
         read_only_fields = ("id",)
+        extra_kwargs = {
+            "position": {"required": False, "allow_blank": True},
+            "mode": {"required": False},
+        }
+
+    def create(self, validated_data):
+        validated_data.pop("count", None)
+        return super().create(validated_data)
 
 
-class InterviewAnswerSerializer(serializers.Serializer):
-    answer = serializers.CharField(allow_blank=False)
+class InterviewGenerateSerializer(serializers.Serializer):
+    count = serializers.IntegerField(min_value=1, max_value=50, default=3)
+
+
+class InterviewQuestionUpdateSerializer(serializers.Serializer):
+    answer = serializers.CharField(allow_blank=True)
+
+
+class InterviewEvaluateSerializer(serializers.Serializer):
+    context = serializers.JSONField(required=False)
+    include_summary = serializers.BooleanField(required=False, default=True)
